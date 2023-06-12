@@ -1,7 +1,10 @@
 package iterator;
 
+import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public interface RichIterator<A> extends Iterator<A> {
     // easy
@@ -10,14 +13,19 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return true if there are no more elements, false otherwise
      */
     default boolean isEmpty() {
-        throw new NotImplementedException();
+        return !this.hasNext();
     }
 
     /**
      * @return number of elements
      */
     default int length() {
-        throw new NotImplementedException();
+        int counter = 0;
+        while (this.hasNext()) {
+            this.next();
+            counter++;
+        }
+        return counter;
     }
 
     /**
@@ -25,14 +33,22 @@ public interface RichIterator<A> extends Iterator<A> {
      * @throws NoSuchElementException if the iterator is empty
      */
     default A last() {
-        throw new NotImplementedException();
+        A last = this.next();
+        while (this.hasNext()) {
+            last = this.next();
+        }
+        return last;
     }
 
     /**
      * @return the last element if not empty.
      */
     default Optional<A> lastOptional() {
-        throw new NotImplementedException();
+        Optional<A> last = Optional.empty();
+        while (this.hasNext()) {
+            last = Optional.ofNullable(this.next());
+        }
+        return last;
     }
 
     /**
@@ -40,7 +56,14 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return the index of the element if exists, -1 otherwise
      */
     default int indexOf(A elem) {
-        throw new NotImplementedException();
+        int index = -1;
+        while (this.hasNext()) {
+            index++;
+            if (this.next().equals(elem)) {
+                return index;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -50,14 +73,24 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return Optional.of(A) if exists, empty() otherwise.
      */
     default Optional<A> find(Predicate<? super A> f) {
-        throw new NotImplementedException();
+        while (this.hasNext()) {
+            Optional<A> find = Optional.of(this.next());
+            if (f.test(find.get())) {
+                return find;
+            }
+        }
+        return Optional.empty();
     }
 
     /**
      * @return Optional.of(next) if exists or empty() otherwise
      */
     default Optional<A> nextOptional() {
-        throw new NotImplementedException();
+        Optional<A> no = Optional.empty();
+        if (this.hasNext()) {
+            no = Optional.ofNullable(this.next());
+        }
+        return no;
     }
 
     /**
@@ -66,7 +99,9 @@ public interface RichIterator<A> extends Iterator<A> {
      * @param f the Consumer
      */
     default void foreach(Consumer<? super A> f) {
-        throw new NotImplementedException();
+        while (this.hasNext()) {
+            f.accept(this.next());
+        }
     }
 
     /**
@@ -74,7 +109,12 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return true if exists, false otherwise
      */
     default boolean contains(A elem) {
-        throw new NotImplementedException();
+        while (this.hasNext()) {
+            if (elem.equals(this.next())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -88,21 +128,32 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return the collection
      */
     default <C extends Collection<A>> C toCollection(Supplier<C> collectionFactory) {
-        throw new NotImplementedException();
+        return this.toList().stream()
+                .collect(Collectors.toCollection(collectionFactory));
+
+//        C c = collectionFactory.get();
+//        while (this.hasNext()) {
+//            c.add(this.next());
+//        }
+//        return c;
     }
 
     /**
      * @return a list built from the iterator's elements
      */
     default List<A> toList() {
-        throw new NotImplementedException();
+        List<A> list = new ArrayList<>();
+        while (this.hasNext()) {
+            list.add(this.next());
+        }
+        return list;
     }
 
     /**
      * @return a set built from the iterator's elements
      */
     default Set<A> toSet() {
-        throw new NotImplementedException();
+        return new HashSet<>(this.toList());
     }
 
     /**
@@ -110,8 +161,13 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return true if this and that have the same elements in the same order
      */
     default boolean sameElements(Iterator<A> that) {
-        // TODO: implement this method
-        throw new NotImplementedException();
+        while (this.hasNext() && that.hasNext()) {
+            if (!this.next().equals(that.next())) {
+                return false;
+            }
+        }
+
+        return !this.hasNext() && !that.hasNext();
     }
 
     // hard
@@ -124,8 +180,7 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return an iterator that contains only this element
      */
     static <A> RichIterator<A> pure(A elem) {
-        // TODO: implement this method
-        throw new NotImplementedException();
+        return RichIterator.apply(elem);
     }
 
     /**
@@ -136,7 +191,15 @@ public interface RichIterator<A> extends Iterator<A> {
      * @throws NoSuchElementException if the iterator is empty
      */
     default A max(Comparator<? super A> comparator) {
-        throw new NotImplementedException();
+        A max = this.next();
+        while (this.hasNext()) {
+            A next = this.next();
+            Integer maxInt = comparator.compare(max, next);
+            if (maxInt.equals(next)) {
+                max = next;
+            }
+        }
+        return max;
     }
 
     /**
@@ -147,7 +210,15 @@ public interface RichIterator<A> extends Iterator<A> {
      * @throws NoSuchElementException if the iterator is empty
      */
     default A min(Comparator<? super A> comparator) {
-        throw new NotImplementedException();
+        A min = this.next();
+        while (this.hasNext()) {
+            A next = this.next();
+            Integer minInt = comparator.compare(min, next);
+            if (!minInt.equals(next)) {
+                min = next;
+            }
+        }
+        return min;
     }
 
     /**
@@ -158,7 +229,8 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return a new Iterator.
      */
     default <B> RichIterator<B> map(Function<? super A, ? extends B> f) {
-        throw new NotImplementedException();
+        Iterable<A> iterable = () -> this;
+        return RichIterator.from(StreamSupport.stream(iterable.spliterator(), true).map(f).collect(Collectors.toList()));
     }
 
     /**
@@ -211,7 +283,19 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator().mkString("[", ";","]") // []
      */
     default String mkString(String prefix, String delimiter, String suffix) {
-        throw new NotImplementedException();
+        StringBuilder stringBuilder = new StringBuilder().append(prefix);
+        boolean isFirst = true;
+        while (this.hasNext()) {
+            if (isFirst) {
+                stringBuilder.append(this.next().toString());
+                isFirst = false;
+            } else {
+                stringBuilder.append(delimiter);
+                stringBuilder.append(this.next().toString());
+            }
+        }
+        stringBuilder.append(suffix);
+        return stringBuilder.toString();
     }
 
     /**
@@ -224,7 +308,7 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return a String
      */
     default String mkString() {
-        throw new NotImplementedException();
+        return this.mkString("RichIterator(", ",", ")");
     }
 
     /**
@@ -498,7 +582,17 @@ public interface RichIterator<A> extends Iterator<A> {
     // end
 
     @SuppressWarnings("rawtypes")
-    RichIterator EMPTY = EmptyIterator.instance;
+    RichIterator EMPTY = new RichIterator() {
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public Object next() {
+            return Collections.emptyIterator().next();
+        }
+    };
 
     /**
      * creates RichIterator based on the given elements
