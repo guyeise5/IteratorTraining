@@ -14,7 +14,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
+import static testing.TestingUtils.*;
 import static testing.TestingUtils.basicTestIterator;
+import static testing.TestingUtils.randomOrderAIterator;
 
 public class TestHardLevel {
     @Test(timeOut = 1000)
@@ -213,6 +215,11 @@ public class TestHardLevel {
         Assert.assertEquals(1, basicTestIterator().max((x, y) -> y - x).intValue());
     }
 
+    @Test(timeOut = 1000)
+    public void maxTest2() {
+        Assert.assertEquals(new A(1), randomOrderAIterator().max((x, y) -> y.v - x.v));
+    }
+
     @Test(expectedExceptions = NoSuchElementException.class)
     public void maxFailedTest() {
         final RichIterator<Integer> itr = RichIterator.apply(1);
@@ -223,6 +230,11 @@ public class TestHardLevel {
     @Test(timeOut = 1000)
     public void minTest() {
         Assert.assertEquals(5, basicTestIterator().min((x, y) -> y - x).intValue());
+    }
+
+    @Test(timeOut = 1000)
+    public void minTest2() {
+        Assert.assertEquals(new A(5), randomOrderAIterator().min((x, y) -> y.v - x.v));
     }
 
     @Test(expectedExceptions = NoSuchElementException.class)
@@ -245,7 +257,7 @@ public class TestHardLevel {
     }
     @Test(timeOut = 1000)
     public void iterateTest_2() {
-        TestingUtils.CountableFunction<Integer, Integer> f = TestingUtils.toCountableFunction(x -> x + 1);
+        TestingUtils.CountableFunction<Integer, Integer> f = toCountableFunction(x -> x + 1);
         RichIterator<Integer> itr = RichIterator.iterate(0, f);
         int i = 0;
         assertEquals(0, f.count());
