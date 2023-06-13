@@ -13,6 +13,10 @@ public class TestingUtils {
         return RichIterator.apply(new A(1), new A(2), new A(3), new A(4), new A(5));
     }
 
+    public static RichIterator<A> randomOrderAIterator() {
+        return RichIterator.apply(new A(3), new A(4), new A(5), new A(1), new A(2));
+    }
+
     public static RichIterator<Integer> basicTestIterator() {
         return RichIterator.apply(1, 2, 3, 4, 5);
     }
