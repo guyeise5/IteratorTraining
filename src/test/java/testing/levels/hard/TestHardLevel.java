@@ -104,6 +104,23 @@ public class TestHardLevel {
     }
 
     @Test(timeOut = 1000)
+    public void take_3_test() {
+        RichIterator<Object> itr = RichIterator.empty().take(3);
+        assertFalse(itr.hasNext());
+    }
+
+    @Test(timeOut = 1000)
+    public void take_4_test() {
+        RichIterator<Integer> itr = RichIterator.apply(1, 2, 3).take(5);
+        assertTrue(itr.hasNext());
+        itr.next();
+        itr.next();
+        assertTrue(itr.hasNext());
+        itr.next();
+        assertFalse(itr.hasNext());
+    }
+
+    @Test(timeOut = 1000)
     public void foldLeftTest() {
         Assert.assertEquals("12345", basicTestIterator().foldLeft("", (total, i) -> total + i));
     }
@@ -210,6 +227,7 @@ public class TestHardLevel {
         final Map<Character, Integer> map = itr.toMap(Function.identity());
         assertTrue(map.isEmpty());
     }
+
     @Test(timeOut = 1000)
     public void maxTest() {
         Assert.assertEquals(1, basicTestIterator().max((x, y) -> y - x).intValue());
@@ -255,6 +273,7 @@ public class TestHardLevel {
         assertEquals(5, itr.next().intValue());
         assertTrue(itr.hasNext());
     }
+
     @Test(timeOut = 1000)
     public void iterateTest_2() {
         TestingUtils.CountableFunction<Integer, Integer> f = toCountableFunction(x -> x + 1);
@@ -368,7 +387,7 @@ public class TestHardLevel {
     public void reduceOptional_4_Test() {
         RichIterator<Object> itr = RichIterator.from(Stream.of(1, 2, 3).map(x -> Collections.emptyIterator().next()).iterator());
 
-        itr.reduceOptional((x,y) -> null);
+        itr.reduceOptional((x, y) -> null);
     }
 
 
@@ -430,7 +449,7 @@ public class TestHardLevel {
     @Test(timeOut = 1000, dataProvider = "tf", dataProviderClass = TestingDataProvider.class)
     public void appendAll_3_Test(boolean chk) {
         RichIterator<Integer> itr = RichIterator.<Integer>empty().appendAll(RichIterator.from(Stream.iterate(1, x -> x + 1).iterator()));
-        if(chk) {
+        if (chk) {
             assertTrue(itr.hasNext());
         }
         assertEquals(1, itr.next().intValue());
@@ -511,11 +530,11 @@ public class TestHardLevel {
     @Test(timeOut = 1000)
     public void appendAll_10_Test() {
         RichIterator<Integer> itr = RichIterator.apply(1, 2, 3, 4);
-        itr.appendAll(RichIterator.apply(5,6,7));
-        assertEquals(1,itr.next().intValue());
-        assertEquals(2,itr.next().intValue());
-        assertEquals(3,itr.next().intValue());
-        assertEquals(4,itr.next().intValue());
+        itr.appendAll(RichIterator.apply(5, 6, 7));
+        assertEquals(1, itr.next().intValue());
+        assertEquals(2, itr.next().intValue());
+        assertEquals(3, itr.next().intValue());
+        assertEquals(4, itr.next().intValue());
         assertFalse(itr.hasNext());
     }
 
@@ -625,7 +644,7 @@ public class TestHardLevel {
     @Test(timeOut = 1000, dataProvider = "tf", dataProviderClass = TestingDataProvider.class)
     public void prependAll_7_Test(boolean chk) {
         RichIterator<Integer> itr = RichIterator.from(Stream.iterate(1, x -> x + 1).iterator()).prependAll(RichIterator.empty());
-        if(chk){
+        if (chk) {
             assertTrue(itr.hasNext());
         }
         assertEquals(1, itr.next().intValue());
@@ -665,10 +684,10 @@ public class TestHardLevel {
     public void prependAll_10_Test() {
         RichIterator<Integer> itr = RichIterator.apply(1, 2, 3, 4);
         itr.prependAll(RichIterator.apply(-2, -1, 0));
-        assertEquals(1,itr.next().intValue());
-        assertEquals(2,itr.next().intValue());
-        assertEquals(3,itr.next().intValue());
-        assertEquals(4,itr.next().intValue());
+        assertEquals(1, itr.next().intValue());
+        assertEquals(2, itr.next().intValue());
+        assertEquals(3, itr.next().intValue());
+        assertEquals(4, itr.next().intValue());
         assertFalse(itr.hasNext());
     }
 
@@ -678,9 +697,10 @@ public class TestHardLevel {
         assertEquals(0, itr.next().intValue());
         assertFalse(itr.hasNext());
     }
+
     @Test(timeOut = 1000)
     public void scanLeft_2_Test() {
-        RichIterator<Integer> itr = RichIterator.apply(1,2,3,4,5).scanLeft(0, Integer::sum);
+        RichIterator<Integer> itr = RichIterator.apply(1, 2, 3, 4, 5).scanLeft(0, Integer::sum);
         assertEquals(0, itr.next().intValue());
         assertEquals(1, itr.next().intValue());
         assertEquals(3, itr.next().intValue());
@@ -699,6 +719,12 @@ public class TestHardLevel {
         assertEquals(6, itr.next().intValue());
         assertEquals(10, itr.next().intValue());
         assertEquals(15, itr.next().intValue());
+        assertTrue(itr.hasNext());
+    }
+
+    @Test(timeOut = 1000)
+    public void scanLeft_4_Test() {
+        RichIterator<Integer> itr = RichIterator.empty().scanLeft(0, (x,y) -> x);
         assertTrue(itr.hasNext());
     }
 
