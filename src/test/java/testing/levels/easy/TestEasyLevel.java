@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.*;
 import static testing.TestingUtils.*;
 
 public class TestEasyLevel {

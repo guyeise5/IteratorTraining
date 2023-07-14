@@ -1,7 +1,6 @@
 package testing.levels.hard;
 import iterator.Pair;
 import iterator.RichIterator;
-import org.junit.Assert;
 import org.testng.annotations.Test;
 import testing.TestingDataProvider;
 import testing.TestingUtils;
@@ -13,7 +12,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.*;
 import static testing.TestingUtils.*;
 import static testing.TestingUtils.basicTestIterator;
 import static testing.TestingUtils.randomOrderAIterator;
@@ -21,11 +20,11 @@ import static testing.TestingUtils.randomOrderAIterator;
 public class TestHardLevel {
     @Test(timeOut = 1000)
     public void drop_1_Test() {
-        Assert.assertEquals(1, basicTestIterator().drop(0).next().intValue());
-        Assert.assertEquals(2, basicTestIterator().drop(1).next().intValue());
-        Assert.assertEquals(3, basicTestIterator().drop(2).next().intValue());
-        Assert.assertEquals(4, basicTestIterator().drop(3).next().intValue());
-        Assert.assertEquals(5, basicTestIterator().drop(4).next().intValue());
+        assertEquals(1, basicTestIterator().drop(0).next().intValue());
+        assertEquals(2, basicTestIterator().drop(1).next().intValue());
+        assertEquals(3, basicTestIterator().drop(2).next().intValue());
+        assertEquals(4, basicTestIterator().drop(3).next().intValue());
+        assertEquals(5, basicTestIterator().drop(4).next().intValue());
         assertFalse(basicTestIterator().drop(5).hasNext());
     }
 
@@ -122,7 +121,7 @@ public class TestHardLevel {
 
     @Test(timeOut = 1000)
     public void foldLeftTest() {
-        Assert.assertEquals("12345", basicTestIterator().foldLeft("", (total, i) -> total + i));
+        assertEquals("12345", basicTestIterator().foldLeft("", (total, i) -> total + i));
     }
 
     @Test(timeOut = 1000)
@@ -230,12 +229,12 @@ public class TestHardLevel {
 
     @Test(timeOut = 1000)
     public void maxTest() {
-        Assert.assertEquals(1, basicTestIterator().max((x, y) -> y - x).intValue());
+        assertEquals(1, basicTestIterator().max((x, y) -> y - x).intValue());
     }
 
     @Test(timeOut = 1000)
     public void maxTest2() {
-        Assert.assertEquals(new A(1), randomOrderAIterator().max((x, y) -> y.v - x.v));
+        assertEquals(new A(1), randomOrderAIterator().max((x, y) -> y.v - x.v));
     }
 
     @Test(expectedExceptions = NoSuchElementException.class)
@@ -247,12 +246,12 @@ public class TestHardLevel {
 
     @Test(timeOut = 1000)
     public void minTest() {
-        Assert.assertEquals(5, basicTestIterator().min((x, y) -> y - x).intValue());
+        assertEquals(5, basicTestIterator().min((x, y) -> y - x).intValue());
     }
 
     @Test(timeOut = 1000)
     public void minTest2() {
-        Assert.assertEquals(new A(5), randomOrderAIterator().min((x, y) -> y.v - x.v));
+        assertEquals(new A(5), randomOrderAIterator().min((x, y) -> y.v - x.v));
     }
 
     @Test(expectedExceptions = NoSuchElementException.class)

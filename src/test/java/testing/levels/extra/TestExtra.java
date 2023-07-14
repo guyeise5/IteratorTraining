@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import static iterator.Extra.*;
-import static org.junit.Assert.*;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 @Test

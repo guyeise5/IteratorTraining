@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.*;
 import static testing.TestingUtils.basicTestIterator;
 import static testing.TestingUtils.toCountablePredicate;
 
