@@ -10,7 +10,7 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return true if there are no more elements, false otherwise
      */
     default boolean isEmpty() {
-        throw new NotImplementedException();
+        return !hasNext();
     }
 
     /**
