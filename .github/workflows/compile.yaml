@@ -2,7 +2,7 @@ name: Testing
 on: pull_request
 
 jobs:
-  build:
+  compile:
     runs-on: ubuntu-latest
 
     steps:
