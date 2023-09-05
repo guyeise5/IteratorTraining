@@ -1,6 +1,7 @@
 package iterator;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
 
 public interface RichIterator<A> extends Iterator<A> {
@@ -10,14 +11,19 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return true if there are no more elements, false otherwise
      */
     default boolean isEmpty() {
-        throw new NotImplementedException();
+        return !this.hasNext();
     }
 
     /**
      * @return number of elements
      */
     default int length() {
-        throw new NotImplementedException();
+        int counter = 0;
+        while (this.hasNext()) {
+            this.next();
+            counter++;
+        }
+        return counter;
     }
 
     /**
@@ -25,14 +31,21 @@ public interface RichIterator<A> extends Iterator<A> {
      * @throws NoSuchElementException if the iterator is empty
      */
     default A last() {
-        throw new NotImplementedException();
+        A last = this.next();
+        while (this.hasNext()) {
+            last = this.next();
+        }
+        return last;
     }
 
     /**
      * @return the last element if not empty.
      */
     default Optional<A> lastOptional() {
-        throw new NotImplementedException();
+        if (this.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(this.last());
     }
 
     /**
@@ -40,7 +53,14 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return the index of the element if exists, -1 otherwise
      */
     default int indexOf(A elem) {
-        throw new NotImplementedException();
+        int index = -1;
+        while (this.hasNext()) {
+            index++;
+            if (this.next().equals(elem)) {
+                return index;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -50,14 +70,24 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return Optional.of(A) if exists, empty() otherwise.
      */
     default Optional<A> find(Predicate<? super A> f) {
-        throw new NotImplementedException();
+        while (this.hasNext()) {
+            A find = this.next();
+            if (f.test(find)) {
+                return Optional.of(find);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
      * @return Optional.of(next) if exists or empty() otherwise
      */
     default Optional<A> nextOptional() {
-        throw new NotImplementedException();
+        Optional<A> no = Optional.empty();
+        if (this.hasNext()) {
+            no = Optional.ofNullable(this.next());
+        }
+        return no;
     }
 
     /**
@@ -66,7 +96,9 @@ public interface RichIterator<A> extends Iterator<A> {
      * @param f the Consumer
      */
     default void foreach(Consumer<? super A> f) {
-        throw new NotImplementedException();
+        while (this.hasNext()) {
+            f.accept(this.next());
+        }
     }
 
     /**
@@ -74,7 +106,7 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return true if exists, false otherwise
      */
     default boolean contains(A elem) {
-        throw new NotImplementedException();
+        return this.find(a -> a.equals(elem)).isPresent();
     }
 
     /**
@@ -88,21 +120,25 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return the collection
      */
     default <C extends Collection<A>> C toCollection(Supplier<C> collectionFactory) {
-        throw new NotImplementedException();
+        C c = collectionFactory.get();
+        while (this.hasNext()) {
+            c.add(this.next());
+        }
+        return c;
     }
 
     /**
      * @return a list built from the iterator's elements
      */
     default List<A> toList() {
-        throw new NotImplementedException();
+        return this.toCollection(ArrayList::new);
     }
 
     /**
      * @return a set built from the iterator's elements
      */
     default Set<A> toSet() {
-        throw new NotImplementedException();
+        return this.toCollection(HashSet::new);
     }
 
     /**
@@ -110,8 +146,13 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return true if this and that have the same elements in the same order
      */
     default boolean sameElements(Iterator<A> that) {
-        // TODO: implement this method
-        throw new NotImplementedException();
+        while (this.hasNext() && that.hasNext()) {
+            if (!Objects.equals(this.next(), that.next())) {
+                return false;
+            }
+        }
+
+        return !this.hasNext() && !that.hasNext();
     }
 
     // hard
@@ -124,8 +165,7 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return an iterator that contains only this element
      */
     static <A> RichIterator<A> pure(A elem) {
-        // TODO: implement this method
-        throw new NotImplementedException();
+        return RichIterator.apply(elem);
     }
 
     /**
@@ -136,7 +176,14 @@ public interface RichIterator<A> extends Iterator<A> {
      * @throws NoSuchElementException if the iterator is empty
      */
     default A max(Comparator<? super A> comparator) {
-        throw new NotImplementedException();
+        A max = this.next();
+        while (this.hasNext()) {
+            A next = this.next();
+            if (comparator.compare(next, max) > 0) {
+                max = next;
+            }
+        }
+        return max;
     }
 
     /**
@@ -147,7 +194,14 @@ public interface RichIterator<A> extends Iterator<A> {
      * @throws NoSuchElementException if the iterator is empty
      */
     default A min(Comparator<? super A> comparator) {
-        throw new NotImplementedException();
+        A min = this.next();
+        while (this.hasNext()) {
+            A next = this.next();
+            if (comparator.compare(next, min) < 0) {
+                min = next;
+            }
+        }
+        return min;
     }
 
     /**
@@ -158,7 +212,18 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return a new Iterator.
      */
     default <B> RichIterator<B> map(Function<? super A, ? extends B> f) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<B>() {
+            @Override
+            public boolean hasNext() {
+                return t.hasNext();
+            }
+
+            @Override
+            public B next() {
+                return f.apply(t.next());
+            }
+        };
     }
 
     /**
@@ -169,7 +234,20 @@ public interface RichIterator<A> extends Iterator<A> {
      * output (printed): 112233
      */
     default RichIterator<A> tapEach(Consumer<? super A> f) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<A>() {
+            @Override
+            public boolean hasNext() {
+                return t.hasNext();
+            }
+
+            @Override
+            public A next() {
+                A a = t.next();
+                f.accept(a);
+                return a;
+            }
+        };
     }
 
     /**
@@ -184,7 +262,13 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator.apply(1).reduce((total, a) -> total + a) // 1
      */
     default A reduce(BiFunction<? super A, ? super A, ? extends A> acc) {
-        throw new NotImplementedException();
+        if (this.isEmpty()) throw new NoSuchElementException();
+        A temp = this.next();
+        while (!this.isEmpty()) {
+            temp = acc.apply(temp, this.next());
+        }
+
+        return temp;
     }
 
     /**
@@ -194,7 +278,8 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return // see reduce
      */
     default Optional<A> reduceOptional(BiFunction<? super A, ? super A, ? extends A> acc) {
-        throw new NotImplementedException();
+        if (!this.hasNext()) return Optional.empty();
+        return Optional.of(this.reduce(acc));
     }
 
     /**
@@ -211,7 +296,19 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator().mkString("[", ";","]") // []
      */
     default String mkString(String prefix, String delimiter, String suffix) {
-        throw new NotImplementedException();
+        StringBuilder stringBuilder = new StringBuilder().append(prefix);
+        boolean isFirst = true;
+        while (this.hasNext()) {
+            if (isFirst) {
+                stringBuilder.append(this.next().toString());
+                isFirst = false;
+            } else {
+                stringBuilder.append(delimiter);
+                stringBuilder.append(this.next().toString());
+            }
+        }
+        stringBuilder.append(suffix);
+        return stringBuilder.toString();
     }
 
     /**
@@ -224,7 +321,7 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return a String
      */
     default String mkString() {
-        throw new NotImplementedException();
+        return this.mkString("RichIterator(", ",", ")");
     }
 
     /**
@@ -236,7 +333,24 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator.apply(1,2,3,4).append(5) // 1,2,3,4,5
      */
     default RichIterator<A> append(A elem) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<A>() {
+            int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return t.hasNext() || i == 0;
+            }
+
+            @Override
+            public A next() {
+                if (!t.hasNext() && i == 0) {
+                    i++;
+                    return elem;
+                }
+                return t.next();
+            }
+        };
     }
 
     /**
@@ -248,7 +362,18 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator.apply(1,2,3,4).appendAll(Arrays.asList(5,6,7,8)) // 1,2,3,4,5,6,7,8
      */
     default RichIterator<A> appendAll(Iterator<A> elems) {
-        throw new NotImplementedException();
+        RichIterator<A> tempThis = this;
+        return new RichIterator<A>() {
+            @Override
+            public boolean hasNext() {
+                return tempThis.hasNext() || elems.hasNext();
+            }
+
+            @Override
+            public A next() {
+                return !tempThis.hasNext() && elems.hasNext() ? elems.next() : tempThis.next();
+            }
+        };
     }
 
     /**
@@ -260,7 +385,23 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator.apply(1,2,3,4).prepend(0) // 0,1,2,3,4
      */
     default RichIterator<A> prepend(A elem) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<A>() {
+            boolean next = true;
+            @Override
+            public boolean hasNext() {
+                return t.hasNext() || next;
+            }
+
+            @Override
+            public A next() {
+                if (next) {
+                    next = false;
+                    return elem;
+                }
+                return t.next();
+            }
+        };
     }
 
     /**
@@ -272,7 +413,18 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator.apply(4,5,6,7).prependAll(Arrays.asList(1,2,3)) // 1,2,3,4,5,6,7
      */
     default RichIterator<A> prependAll(Iterator<A> elems) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<A>() {
+            @Override
+            public boolean hasNext() {
+                return t.hasNext() || elems.hasNext();
+            }
+
+            @Override
+            public A next() {
+                return elems.hasNext() ? elems.next() : t.next();
+            }
+        };
     }
 
     /**
@@ -285,7 +437,29 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator.apply(1,2,3,4,5,1,2,3,4,5).drop(20) // empty()
      */
     default RichIterator<A> drop(int n) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<A>() {
+            int i = 0;
+
+            public void drop() {
+                while (i < n && t.hasNext()) {
+                    t.next();
+                    i++;
+                }
+            }
+
+            @Override
+            public boolean hasNext() {
+                if (i == 0) drop();
+                return t.hasNext();
+            }
+
+            @Override
+            public A next() {
+                if (i == 0) drop();
+                return t.next();
+            }
+        };
     }
 
     /**
@@ -298,7 +472,21 @@ public interface RichIterator<A> extends Iterator<A> {
      * RichIterator.apply(1,2,3,4,5).take(20) // 1,2,3,4,5
      */
     default RichIterator<A> take(int n) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<A>() {
+            int i = 0;
+            @Override
+            public boolean hasNext() {
+                return i < n;
+            }
+
+            @Override
+            public A next() {
+                i++;
+                if (i <= n) return t.next();
+                throw new NoSuchElementException();
+            }
+        };
     }
 
     /**
@@ -314,7 +502,10 @@ public interface RichIterator<A> extends Iterator<A> {
      * empty().foldLeft(0, (x,y) -> x + y) // 0
      */
     default <B> B foldLeft(B zero, BiFunction<? super B, ? super A, ? extends B> acc) {
-        throw new NotImplementedException();
+        while (this.hasNext()) {
+            zero = acc.apply(zero, this.next());
+        }
+        return zero;
     }
 
     /**
@@ -326,7 +517,28 @@ public interface RichIterator<A> extends Iterator<A> {
      * Iterator(1,2,3,4,5).scanLeft(0, Integer::sum) // Iterator(0,1,3,6,10,15)
      */
     default <B> RichIterator<B> scanLeft(B zero, BiFunction<? super B, ? super A, ? extends B> acc) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<B>() {
+            boolean start = false;
+            B sum = zero;
+            @Override
+            public boolean hasNext() {
+                return t.hasNext();
+            }
+
+            @Override
+            public B next() {
+                if (!start) {
+                    start = true;
+                    return sum;
+                }
+                if (t.hasNext()) {
+                    sum = acc.apply(sum, t.next());
+                    return sum;
+                }
+                return (B) t.next();
+            }
+        };
     }
 
     /**
@@ -345,7 +557,25 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return an iterator
      */
     static <A> RichIterator<A> iterate(A first, Function<? super A, ? extends A> progress) {
-        throw new NotImplementedException();
+        return new RichIterator<A>() {
+            A n = first;
+            boolean isFirst = true;
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+
+            @Override
+            public A next() {
+                if (isFirst) {
+                    isFirst = false;
+                    return n;
+                }
+
+                n = progress.apply(n);
+                return n;
+            }
+        };
     }
 
     /**
@@ -359,7 +589,18 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return zipped iterator
      */
     default <B> RichIterator<Pair<A, B>> zip(Iterator<B> that) {
-        throw new NotImplementedException();
+        RichIterator<A> t = this;
+        return new RichIterator<Pair<A, B>>() {
+            @Override
+            public boolean hasNext() {
+                return t.hasNext() && that.hasNext();
+            }
+
+            @Override
+            public Pair<A, B> next() {
+                return Pair.apply(t.next(), that.next());
+            }
+        };
     }
 
     /**
@@ -371,7 +612,8 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return the zipped iterator
      */
     default RichIterator<Pair<A, Integer>> zipWithIndex() {
-        throw new NotImplementedException();
+        AtomicInteger i = new AtomicInteger(-1);
+        return this.map(a -> Pair.apply(a, i.incrementAndGet()));
     }
 
     /**
@@ -383,7 +625,12 @@ public interface RichIterator<A> extends Iterator<A> {
      * @return a map
      */
     default <K, V> Map<K, V> toMap(Function<? super A, ? extends Pair<K, V>> asPair) {
-        throw new NotImplementedException();
+        Map<K, V> m = new HashMap<>();
+        this.foreach(a -> {
+            Pair<K, V> p = asPair.apply(a);
+            m.put(p._1, p._2);
+        });
+        return m;
     }
 
     // very hard
