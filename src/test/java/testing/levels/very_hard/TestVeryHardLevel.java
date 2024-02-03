@@ -96,7 +96,7 @@ public class TestVeryHardLevel {
     public void buffered_8_Test() {
         RichIterator<Object> itr = RichIterator.from(Stream.of(1, 2, 3).map(x -> Collections.emptyIterator().next()).iterator());
 
-        itr.buffered().headOptional();
+        itr.buffered().head();
     }
 
     @Test(timeOut = 1000)
