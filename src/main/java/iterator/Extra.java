@@ -1,7 +1,8 @@
 package iterator;
 
-
 import java.util.Optional;
+
+import static iterator.RichIterator.*;
 
 public final class Extra {
     private Extra() {
@@ -13,7 +14,7 @@ public final class Extra {
      * @implNote try implement it with only one line of code !
      */
     public static int sumAges(RichIterator<Person> itr) {
-        throw new NotImplementedException();
+        return itr.isEmpty() ? 0 : itr.map(person -> person.age).reduce(Integer::sum);
     }
 
     /**
@@ -22,7 +23,15 @@ public final class Extra {
      * @implNote try implement it with only one line of code !
      */
     public static Optional<Integer> avgAge(RichIterator<Person> itr) {
-        throw new NotImplementedException();
+        return itr.isEmpty()
+                ? Optional.empty()
+                : Optional.of(
+                pure(itr.map(person -> person.age)
+                        .zipWithIndex()
+                        .reduce((total, pair) -> Pair.apply(total._1 + pair._1, pair._2)))
+                        .map(pair -> pair._1 / (pair._2 + 1)).next()
+        );
+
     }
 
     /**
@@ -40,8 +49,7 @@ public final class Extra {
      * @implNote try implement it with only one line of code !
      */
     public static <A, B> RichIterator<Pair<A, B>> product(Iterable<A> a, Iterable<B> b) {
-        // TODO: implement this method
-        throw new NotImplementedException();
+        return from(a).flatMap(element1 -> from(b).map(element2 -> Pair.apply(element1, element2)));
     }
 
     /**
@@ -50,7 +58,9 @@ public final class Extra {
      * @implNote try implement it with only 2 lines of code !
      */
     public static RichIterator<Integer> multiplicationBoard() {
-        throw new NotImplementedException();
+        Iterable<Integer> line = iterate(1, x -> x + 1).take(10).toList();
+
+        return product(line, line).map(pair -> pair._1 * pair._2);
     }
 
     /**
@@ -62,8 +72,7 @@ public final class Extra {
      * @implNote try implement it with only one line of code !
      */
     public static RichIterator<Integer> factorial() {
-        // TODO: implement this method
-        throw new NotImplementedException();
+        return iterate(Pair.apply(1, 1), pair -> Pair.apply(pair._1 * pair._2, pair._2 + 1)).map(pair -> pair._1);
     }
 
     public static class Person {
